@@ -39,6 +39,24 @@ mod ffi {
         samples: Vec<HolonomicTrajectorySample>,
     }
 
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    struct SwerveTrajectorySample {
+        timestamp: f64,
+        x: f64,
+        y: f64,
+        heading: f64,
+        velocity_x: f64,
+        velocity_y: f64,
+        angular_velocity: f64,
+        moduleFX: Vec<f64>,
+        moduleFY: Vec<f64>,
+    }
+
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    struct SwerveTrajectory {
+        samples: Vec<SwerveTrajectorySample>,
+    }
+
     unsafe extern "C++" {
         include!("trajoptlibrust.h");
 
@@ -184,7 +202,7 @@ mod ffi {
             self: &SwervePathBuilderImpl,
             diagnostics: bool,
             uuid: i64,
-        ) -> Result<HolonomicTrajectory>;
+        ) -> Result<SwerveTrajectory>;
         fn add_progress_callback(
             self: Pin<&mut SwervePathBuilderImpl>,
             callback: fn(HolonomicTrajectory, i64),
@@ -470,7 +488,7 @@ impl SwervePathBuilder {
         &mut self,
         diagnostics: bool,
         handle: i64,
-    ) -> Result<HolonomicTrajectory, String> {
+    ) -> Result<SwerveTrajectory, String> {
         match self.path.generate(diagnostics, handle) {
             Ok(traj) => Ok(traj),
             Err(msg) => Err(msg.what().to_string()),
@@ -502,6 +520,8 @@ impl Default for SwervePathBuilder {
 
 pub use ffi::HolonomicTrajectory;
 pub use ffi::HolonomicTrajectorySample;
+pub use ffi::SwerveTrajectory;
+pub use ffi::SwerveTrajectorySample;
 pub use ffi::InitialGuessPoint;
 pub use ffi::SwerveDrivetrain;
 pub use ffi::SwerveModule;

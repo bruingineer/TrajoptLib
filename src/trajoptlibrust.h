@@ -13,6 +13,7 @@
 namespace trajoptlibrust {
 
 struct HolonomicTrajectory;
+struct SwerveTrajectory;
 struct InitialGuessPoint;
 struct SwerveDrivetrain;
 
@@ -64,7 +65,7 @@ class SwervePathBuilderImpl {
                              double radius);
   // TODO: Return std::expected<HolonomicTrajectory, std::string> instead of
   // throwing exception, once cxx supports it
-  HolonomicTrajectory generate(bool diagnostics = false,
+  SwerveTrajectory generate(bool diagnostics = false,
                                int64_t handle = 0) const;
   void add_progress_callback(
       rust::Fn<void(HolonomicTrajectory, int64_t)> callback);

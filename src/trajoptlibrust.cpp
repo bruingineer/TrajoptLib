@@ -16,6 +16,8 @@
 #include "trajopt/path/SwervePathBuilder.h"
 #include "trajopt/trajectory/HolonomicTrajectory.h"
 #include "trajopt/trajectory/HolonomicTrajectorySample.h"
+#include "trajopt/trajectory/SwerveTrajectory.h"
+#include "trajopt/trajectory/SwerveTrajectorySample.h"
 #include "trajoptlib/src/lib.rs.h"
 
 namespace trajoptlibrust {
@@ -281,6 +283,36 @@ HolonomicTrajectory _convert_holonomic_trajectory(
           trajectory.samples)};
 }
 
+rust::f64 _convert_double_to_f64(const double& d) {
+  return d;
+}
+
+SwerveTrajectorySample _convert_swerve_trajectory_sample(
+    const trajopt::SwerveTrajectorySample& sample) {
+  return SwerveTrajectorySample{
+      .timestamp = sample.timestamp,
+      .x = sample.x,
+      .y = sample.y,
+      .heading = sample.heading,
+      .velocity_x = sample.velocityX,
+      .velocity_y = sample.velocityY,
+      .angular_velocity = sample.angularVelocity,
+      .moduleFX = _cpp_vector_to_rust_vec<double, rust::f64, &_convert_double_to_f64>(
+        sample.moduleFX),
+      .moduleFY = _cpp_vector_to_rust_vec<double, rust::f64, &_convert_double_to_f64>(
+        sample.moduleFY),
+  };
+}
+
+SwerveTrajectory _convert_swerve_trajectory(
+    const trajopt::SwerveTrajectory& trajectory) {
+  return SwerveTrajectory{
+      .samples = _cpp_vector_to_rust_vec<trajopt::SwerveTrajectorySample,
+                                         SwerveTrajectorySample,
+                                         &_convert_swerve_trajectory_sample>(
+          trajectory.samples)};
+}
+
 /**
  * Add a callback that will be called on each iteration of the solver.
  *
@@ -300,13 +332,13 @@ void SwervePathBuilderImpl::add_progress_callback(
   });
 }
 
-HolonomicTrajectory SwervePathBuilderImpl::generate(bool diagnostics,
+SwerveTrajectory SwervePathBuilderImpl::generate(bool diagnostics,
                                                     int64_t handle) const {
   if (auto sol = trajopt::OptimalTrajectoryGenerator::Generate(
           path, diagnostics, handle);
       sol.has_value()) {
-    return _convert_holonomic_trajectory(
-        trajopt::HolonomicTrajectory{sol.value()});
+    return _convert_swerve_trajectory(
+        trajopt::SwerveTrajectory{sol.value()});
   } else {
     throw std::runtime_error{sol.error()};
   }
